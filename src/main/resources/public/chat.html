@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8" />
+<title>Chat</title>
+<script src="js/socket.io.min.js"></script>
+<script src="js/tools.js"></script>
+<link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+	<h1 id="title">Chat1</h1>
+	<div id="console" style="width: 90%; height: 350px; overflow: auto; border: solid #8888ff;">
+		<!-- CONSOLE -->
+	</div>
+	<form>
+		<input type="text" id="message" />
+		<button type="button" onClick="FN.send()">Send</button>
+		<button type="button" onClick="FN.disconnect()">Disconnect</button>
+	</form>
+	<script>
+		var EL = EL || {}, FN = FN || {}, GV = GV || {};
+
+		GV.search = tools.decodeUrlParams();
+		GV.to = GV.search.to;
+		GV.from = GV.search.from;
+
+		EL.console = document.getElementById('console');
+		EL.message = document.getElementById('message');
+		EL.title = document.getElementById('title');
+
+		EL.title.innerText = GV.from + '->' + GV.to;
+
+		var socket = io.connect('http://localhost:8081?personId=' + GV.from);
+
+		socket.on('connect', function() {
+			FN.println('## Client has connected to the server!');
+		});
+
+		socket.on('messageEvent', function(data) {
+			FN.println('>>' + data.from + '->' + data.content);
+		});
+
+		socket.on('disconnect', function() {
+			FN.println('## The client has disconnected!');
+		});
+
+		FN.disconnect = function() {
+			socket.disconnect();
+		}
+
+		FN.send = function() {
+			var content = EL.message.value;
+			EL.message.value = '';
+			var data = {
+				to : GV.to,
+				from : GV.from,
+				content : content
+			};
+			socket.emit('messageEvent', data);
+		}
+
+		FN.println = function(text) {
+			var line = document.createElement('div');
+			line.innerText = text;
+			EL.console.appendChild(line);
+		}
+	</script>
+</body>
+</html>
