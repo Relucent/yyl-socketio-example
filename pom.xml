@@ -34,7 +34,7 @@
 		</dependency>
 	</dependencies>
 
-
+	<!-- [mvn clean package] -->
 	<build>
 		<plugins>
 			<plugin>
