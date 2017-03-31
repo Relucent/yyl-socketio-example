@@ -5,32 +5,43 @@
 <title>Chat</title>
 <script src="js/socket.io.min.js"></script>
 <script src="js/tools.js"></script>
+<meta http-equiv="Cache-Control" content="no-store" />
+<meta http-equiv="Pragma" content="no-cache" />
+<meta http-equiv="Expires" content="0" />
 <link rel="stylesheet" href="css/style.css" />
 </head>
 <body>
 	<h1 id="title">Chat1</h1>
-	<div id="console" style="width: 90%; height: 350px; overflow: auto; border: solid #8888ff;">
+	<div id="console" style="width: 90%; height: 300px; overflow: auto; border: solid #8888ff;">
 		<!-- CONSOLE -->
 	</div>
 	<form>
-		<input type="text" id="message" />
+		TO: <select id="to">
+			<option value="1">[壹]</option>
+			<option value="2">[贰]</option>
+			<option value="3">[叁]</option>
+			<option value="4">[肆]</option>
+			<option value="5">[伍]</option>
+		</select> <br> <input type="text" id="message" />
 		<button type="button" onClick="FN.send()">Send</button>
+		<br>
 		<button type="button" onClick="FN.disconnect()">Disconnect</button>
 	</form>
 	<script>
 		var EL = EL || {}, FN = FN || {}, GV = GV || {};
 
 		GV.search = tools.decodeUrlParams();
-		GV.to = GV.search.to;
-		GV.from = GV.search.from;
 
+		GV.personId = GV.search.personId;
+
+		EL.to = document.getElementById('to');
 		EL.console = document.getElementById('console');
 		EL.message = document.getElementById('message');
 		EL.title = document.getElementById('title');
 
-		EL.title.innerText = GV.from + '->' + GV.to;
+		EL.title.innerText = 'Current Person Id : ' + GV.personId;
 
-		var socket = io.connect('http://localhost:8081?personId=' + GV.from);
+		var socket = io.connect('http://localhost:8081?personId=' + GV.personId);
 
 		socket.on('connect', function() {
 			FN.println('## Client has connected to the server!');
@@ -50,10 +61,12 @@
 
 		FN.send = function() {
 			var content = EL.message.value;
+			var to = EL.to.value;
+			var from = GV.personId;
 			EL.message.value = '';
 			var data = {
-				to : GV.to,
-				from : GV.from,
+				to : to,
+				from : from,
 				content : content
 			};
 			socket.emit('messageEvent', data);
