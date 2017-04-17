@@ -3,14 +3,158 @@
 <head>
 <meta charset="utf-8" />
 <title>Chat</title>
-<link rel="stylesheet" href="css/style.css" />
+<script src="js/socket.io.min.js"></script>
+<meta http-equiv="Cache-Control" content="no-store" />
+<meta http-equiv="Pragma" content="no-cache" />
+<meta http-equiv="Expires" content="0" />
+<style type="text/css">
+html, body {
+	font-family: 'Microsoft Yahei', "Helvetica Neue", Helvetica, Verdana, "PingFang SC", Arial, sans-serif;
+	-ms-text-size-adjust: 100%;
+	-webkit-text-size-adjust: 100%;
+	width: 100%;
+	height: 100%;
+	font-size: 14px;
+}
+
+select {
+	min-width: 100px;
+}
+
+.inline {
+	float: left;
+	margin-right: 10px;
+}
+
+.console {
+	width: 90%;
+	height: 300px;
+	overflow: auto;
+	border: 1px solid #8888ff;
+	overflow: auto;
+}
+</style>
 </head>
 <body>
-	<div class="fit-width" style="height: 90%;">
-		<iframe class=" fit-box" style="width: 25%; height: 500px;" src="chat.html?personId=1"></iframe>
-		<iframe class=" fit-box" style="width: 25%; height: 500px;" src="chat.html?personId=2"></iframe>
-		<iframe class=" fit-box" style="width: 25%; height: 500px;" src="chat.html?personId=3"></iframe>
-	</div>
+	<div>
+		<div id="console" class="console"></div>
+		<div>
+			<div class="inline">当前用户：</div>
+			<div class="inline">
+				<select id="current">
+					<option value="1">用户壹</option>
+					<option value="2">用户贰</option>
+					<option value="3">用户叁</option>
+					<option value="4">用户肆</option>
+					<option value="5">用户伍</option>
+				</select>
+			</div>
+			<div class="inline">
+				<button type="button" id="connect">登录</button>
+			</div>
 
+			<div class="inline">
+				<label>消息发送目标: </label><select id="to">
+					<option value="1">用户壹</option>
+					<option value="2">用户贰</option>
+					<option value="3">用户叁</option>
+					<option value="4">用户肆</option>
+					<option value="5">用户伍</option>
+				</select>
+			</div>
+			<div class="inline">
+				<label>消息内容： </label><input type="text" id="message" />
+				<button type="button" id="send" disabled>发送</button>
+			</div>
+			<div class="inline">
+				<button type="button" id="disconnect" disabled>注销</button>
+			</div>
+		</div>
+	</div>
+	<script type="text/javascript">
+		var EL = EL || {}, FN = FN || {}, GV = GV || {};
+
+		EL.current = document.getElementById('current');
+		EL.connect = document.getElementById('connect');
+
+		EL.to = document.getElementById('to');
+		EL.console = document.getElementById('console');
+		EL.message = document.getElementById('message');
+
+		EL.send = document.getElementById('send');
+		EL.disconnect = document.getElementById('disconnect');
+
+		FN.connect = function(personId) {
+
+			GV.personId = personId;
+
+			GV.socket = io.connect('http://localhost:8081?personId=' + personId);
+
+			GV.socket.on('connect', function() {
+				FN.println('## Client has connected to the server!');
+			});
+
+			GV.socket.on('messageEvent', function(data) {
+				FN.println(data.from + '：' + data.content);
+			});
+
+			GV.socket.on('disconnect', function() {
+				FN.println('## The client has disconnected!');
+			});
+
+		}
+
+		FN.disconnect = function() {
+			if (GV.socket) {
+				GV.socket.disconnect();
+				GV.socket = null;
+			}
+		}
+
+		FN.send = function() {
+			if (GV.socket) {
+				var content = EL.message.value;
+				var to = EL.to.value;
+				var from = GV.personId;
+				var data = {
+					to : to,
+					from : from,
+					content : content
+				};
+				GV.socket.emit('messageEvent', data);
+				EL.message.value = '';
+			}
+		}
+
+		FN.println = function(text) {
+			var line = document.createElement('div');
+			line.innerText = text;
+			EL.console.appendChild(line);
+		}
+
+		FN.initialize = function() {
+			EL.current.disabled = false;
+			EL.connect.disabled = false;
+			EL.send.disabled = true;
+			EL.disconnect.disabled = true;
+		}
+
+		EL.connect.addEventListener('click', function() {
+			FN.connect(EL.current.value);
+			EL.current.disabled = true;
+			EL.connect.disabled = true;
+			EL.send.disabled = false;
+			EL.disconnect.disabled = false;
+		});
+		EL.send.addEventListener('click', function() {
+			FN.send();
+		});
+		EL.disconnect.addEventListener('click', function() {
+			FN.disconnect();
+			FN.initialize();
+		});
+
+		FN.initialize();
+	</script>
 </body>
 </html>
