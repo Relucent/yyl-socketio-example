@@ -88,7 +88,7 @@ select {
 
 			GV.personId = personId;
 
-			GV.socket = io.connect('http://localhost:8081?personId=' + personId);
+			GV.socket = io.connect('http://localhost:8001?personId=' + personId);
 
 			GV.socket.on('connect', function() {
 				FN.println('## Client has connected to the server!');
